@@ -1,0 +1,15 @@
+[project]
+name = "vllm-stack"
+version = "0.1.0"
+description = "Local LLM stack with vLLM inference engine and Open WebUI"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+keywords = ["llm", "vllm", "openwebui", "ai", "inference"]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/yourusername/vllm-stack"
+
+[tool.uv]
+dev-dependencies = []

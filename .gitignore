@@ -1,0 +1,46 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+venv/
+env/
+ENV/
+
+# Environment variables (secrets)
+.env
+.env.local
+.env.*.local
+
+# Model cache (large binary files)
+models/
+
+# OpenWebUI persistent data
+openwebui/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker override files (local customizations)
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Logs
+*.log
+logs/
+
+.mypycache__/
+

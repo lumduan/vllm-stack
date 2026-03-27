@@ -1,0 +1,111 @@
+# ---------------------------------------------------------------
+# vllm-stack — รองรับทั้ง CPU และ NVIDIA GPU ในไฟล์เดียว
+#
+# วิธีใช้งาน:
+#   CPU (Mac / ไม่มี GPU):  docker compose up -d
+#   NVIDIA GPU:             ยกเลิก comment ส่วน GPU ด้านล่าง แล้ว docker compose up -d
+# ---------------------------------------------------------------
+
+services:
+  vllm:
+    # --- เลือก image ให้ตรงกับ hardware ---
+    image: vllm/vllm-openai-cpu:latest      # CPU: Mac / ไม่มี GPU
+    # image: vllm/vllm-openai:latest        # GPU: NVIDIA — ยกเลิก comment บรรทัดนี้ แล้ว comment บรรทัด cpu ด้านบน
+
+    container_name: vllm
+    platform: linux/amd64
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./models:/root/.cache/huggingface
+
+    environment:
+      HF_TOKEN: ${HF_TOKEN}
+      TZ: Asia/Bangkok
+
+    # --- เลือก command ให้ตรงกับ image ที่เลือก ---
+
+    # CPU mode — ใช้กับ image vllm-openai-cpu
+    # entrypoint ของ image คือ "vllm serve" อยู่แล้ว จึงใส่แค่ flags
+    command:
+      - --model
+      - ${MODEL_NAME:-typhoon-ai/typhoon2.5-qwen3-4b}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --dtype
+      - float32        # CPU ต้องการ float32
+      - --max-model-len
+      - "2048"
+      - --enable-auto-tool-choice
+      - --tool-call-parser=hermes
+      - --disable-log-stats
+
+    # GPU mode — ยกเลิก comment ส่วนนี้ และ comment ส่วน CPU ด้านบน
+    # command:
+    #   - --model
+    #   - ${MODEL_NAME:-typhoon-ai/typhoon2.5-qwen3-4b}
+    #   - --host
+    #   - 0.0.0.0
+    #   - --port
+    #   - "8000"
+    #   - --dtype
+    #   - auto                 # GPU รองรับ bfloat16/float16 อัตโนมัติ
+    #   - --max-model-len
+    #   - "4096"
+    #   - --gpu-memory-utilization
+    #   - "0.70"
+    #   - --enable-auto-tool-choice
+    #   - --tool-call-parser=hermes
+    #   - --enable-prefix-caching
+    #   - --enable-chunked-prefill
+    #   - --max-num-batched-tokens
+    #   - "4096"
+    #   - --disable-log-stats
+
+    # GPU extras — ยกเลิก comment ด้วยถ้าใช้ GPU
+    # runtime: nvidia
+    # ipc: host
+
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    stop_grace_period: 45s
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+      start_period: 600s   # CPU โหลดโมเดลช้า รอนานขึ้นหน่อย
+      # start_period: 420s # GPU โหลดเร็วกว่า — ใช้ค่านี้แทนถ้าใช้ GPU
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+
+    ports:
+      - "3500:8080"
+
+    environment:
+      OPENAI_API_BASE_URL: http://vllm:8000/v1
+      OPENAI_API_KEY: sk-local
+      OPENAI_API_TYPE: openai
+      DEFAULT_MODEL: ${MODEL_NAME:-typhoon-ai/typhoon2.5-qwen3-4b}
+      WEBUI_AUTH: "false"
+      TZ: Asia/Bangkok
+
+    depends_on:
+      vllm:
+        condition: service_healthy
+
+    volumes:
+      - ./openwebui:/app/backend/data
+
+    restart: unless-stopped
+
+networks:
+  default:
+    name: llm-network
