@@ -6,10 +6,12 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 keywords = ["llm", "vllm", "openwebui", "ai", "inference"]
-dependencies = []
+dependencies = [
+    "openai>=2.30.0",
+]
 
 [project.urls]
-Repository = "https://github.com/yourusername/vllm-stack"
+Repository = "https://github.com/lumduan/vllm-stack"
 
 [tool.uv]
 dev-dependencies = []
