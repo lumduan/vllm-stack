@@ -20,6 +20,11 @@ ENV/
 # Model cache (large binary files)
 models/
 
+# Ollama data and SSH keys
+ollama/models/
+ollama/id_ed25519
+ollama/id_ed25519.pub
+
 # OpenWebUI persistent data
 openwebui/
 
